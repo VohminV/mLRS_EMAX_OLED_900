@@ -100,6 +100,10 @@
 #include "tx-hal-radiomaster-bandit-series-900-esp32.h"
 #endif
 
+#ifdef TX_ELRS_EMAX_OLED_900_ESP32
+#include "tx-hal-emax-oled-900-esp32.h"
+#endif
+
 
 // -- DIY
 

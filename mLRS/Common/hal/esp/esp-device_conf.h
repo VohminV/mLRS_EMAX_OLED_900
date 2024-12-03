@@ -166,6 +166,14 @@
 #endif
 
 
+#ifdef TX_ELRS_EMAX_OLED_900_ESP32
+  #define DEVICE_NAME "EMAX OLED 900"
+  #define DEVICE_IS_TRANSMITTER
+  #define DEVICE_HAS_SX127x
+  #define FREQUENCY_BAND_868_MHZ
+  #define FREQUENCY_BAND_915_MHZ_FCC
+#endif
+
 // -- DIY
 
 #ifdef RX_DIY_DEV_900_ESP8266
