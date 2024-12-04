@@ -20,7 +20,7 @@
 // UART = output port, SBus or whatever
 // UARTF = debug port
 
-#define UARTB_USE_SERIAL1
+#define UARTB_USE_SERIAL
 #define UARTB_BAUD                RX_SERIAL_BAUDRATE
 #define UARTB_TXBUFSIZE           RX_SERIAL_TXBUFSIZE
 #define UARTB_RXBUFSIZE           RX_SERIAL_RXBUFSIZE
@@ -31,11 +31,11 @@
 
 //-- SX1: SX12xx & SPI
 
-#define SPI_CS_IO                 IO_P18
+#define SPI_CS_IO                 IO_P5
 #define SPI_FREQUENCY             10000000L
 #define SPI_MISO                  IO_P19
-#define SPI_MOSI                  IO_P27
-#define SPI_SCK                   IO_P5
+#define SPI_MOSI                  IO_P23
+#define SPI_SCK                   IO_P18
 #define SX_RESET                  IO_P14
 #define SX_DIO0                   IO_P26
 
@@ -79,7 +79,7 @@ IRAM_ATTR bool button_pressed(void)
 
 //-- LEDs
 
-#define LED_RED                   IO_P25
+#define LED_RED                   IO_P27
 
 void leds_init(void)
 {

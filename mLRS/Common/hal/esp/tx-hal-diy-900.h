@@ -22,40 +22,39 @@
 // ESP32, ELRS EMAX OLED 900 TX
 //-------------------------------------------------------
 /*
- {
-    "serial_rx": 13,
-    "serial_tx": 13,
-    "radio_dio0": 4,
-    "radio_miso": 19,
-    "radio_mosi": 23,
-    "radio_nss": 5,
-    "radio_rst": 14,
-    "radio_sck": 18,
-    "power_rxen": 12,
-    "power_min": 0,
-    "power_high": 7,
-    "power_max": 7,
-    "power_default": 2,
-    "power_control": 3,
-    "power_values": [30,40,50,60,80,90,130,225],
-    "power_apc2": 26,
-    "joystick": 33,
-    "joystick_values": [2010, 1230, 635, 2730, 0, 4095],
-    "led_rgb": 27,
-    "led_rgb_isgrb": true,
-    "screen_sck": 21,
-    "screen_sda": 22,
-    "screen_type": 1,
-    "screen_reversed": 1,
-    "use_backpack": true,
-    "debug_backpack_baud": 460800,
-    "debug_backpack_rx": 16,
-    "debug_backpack_tx": 17,
-    "backpack_boot": 15,
-    "backpack_en": 25,
-    "passthrough_baud": 230400,
-    "misc_fan_en": 32
-}
+  {
+  "serial_rx": 21,
+  "serial_tx": 21, 
+  "radio_miso": 33, 
+  "radio_mosi": 32, 
+  "radio_sck": 25, 
+  "radio_dio0": 34, 
+  "radio_dio1": 35, 
+  "radio_nss": 2, 
+  "radio_rst": 13, 
+  "power_min": 3, 
+  "power_high": 6, 
+  "power_max": 6, 
+  "power_default": 3, 
+  "power_control": 0, 
+  "power_values": [0, 3, 5, 15], 
+  "joystick": 39, 
+  "joystick_values": [2839, 2191, 1616, 3511, 0, 4095], 
+  "led_rgb": 22, 
+  "led_rgb_isgrb": true, 
+  "misc_fan_en": 27, 
+  "screen_sck": 4, 
+  "screen_sda": 14, 
+  "screen_type": 1, 
+  "screen_reversed": 1, 
+  "use_backpack": true, 
+  "debug_backpack_baud": 460800, 
+  "debug_backpack_rx": 18, 
+  "debug_backpack_tx": 5, 
+  "backpack_boot": 23, 
+  "backpack_en": 19, 
+  "passthrough_baud": 230400
+  }
 */
 
 
@@ -66,7 +65,7 @@
 //#define DEVICE_HAS_NO_COM
 #define DEVICE_HAS_NO_DEBUG
 
-#ifdef TX_ELRS_EMAX_OLED_900_ESP32
+#ifdef TX_ELRS_DIY_900_ESP32
 #define DEVICE_HAS_SINGLE_LED_RGB
 #define DEVICE_HAS_I2C_DISPLAY_ROT180
 #else
@@ -107,51 +106,52 @@
 
 #define UARTF_USE_SERIAL2 // debug is on JRPin5
 #define UARTF_BAUD                115200
-#define UARTF_USE_TX_IO           IO_P13
+#define UARTF_USE_TX_IO           IO_P21
 #define UARTF_USE_RX_IO           -1
 #define UARTF_TXBUFSIZE           512 // ?? // 512
 
 
 //-- SX1: SX12xx & SPI
 
-#define SPI_CS_IO                 IO_P5
-#define SPI_MISO                  IO_P19
-#define SPI_MOSI                  IO_P23
-#define SPI_SCK                   IO_P18
+#define SPI_CS_IO                 IO_P2
+#define SPI_MISO                  IO_P33
+#define SPI_MOSI                  IO_P32
+#define SPI_SCK                   IO_P25
 #define SPI_FREQUENCY             10000000L
-#define SX_RESET                  IO_P14
-#define SX_DIO0                   IO_P4
-#define SX_RX_EN                  IO_P12
-
-#define SX_USE_RFO
+#define SX_RESET                  IO_P13
+#define SX_DIO0                   IO_P34
+#define SX_DIO1                   IO_P35
 
 IRQHANDLER(void SX_DIO_EXTI_IRQHandler(void);)
 
 void sx_init_gpio(void)
 {
     gpio_init(SX_DIO0, IO_MODE_INPUT_ANALOG);
-    gpio_init(SX_RX_EN, IO_MODE_OUTPUT_PP_LOW);
+    gpio_init(SX_DIO1, IO_MODE_INPUT_ANALOG);
+    //gpio_init(SX_RX_EN, IO_MODE_OUTPUT_PP_LOW);
     gpio_init(SX_RESET, IO_MODE_OUTPUT_PP_HIGH);
 }
 
 IRAM_ATTR void sx_amp_transmit(void)
 {
-    gpio_low(SX_RX_EN);
+    //gpio_low(SX_RX_EN);
 }
 
 IRAM_ATTR void sx_amp_receive(void)
 {
-    gpio_high(SX_RX_EN);
+    //gpio_high(SX_RX_EN);
 }
 
 void sx_dio_enable_exti_isr(void)
 {
     attachInterrupt(SX_DIO0, SX_DIO_EXTI_IRQHandler, RISING);
+    attachInterrupt(SX_DIO1, SX_DIO_EXTI_IRQHandler, RISING);
 }
 
 void sx_dio_init_exti_isroff(void)
 {
     detachInterrupt(SX_DIO0);
+    detachInterrupt(SX_DIO1);
 }
 
 void sx_dio_exti_isr_clearflag(void) {}
@@ -165,9 +165,9 @@ IRAM_ATTR bool button_pressed(void) { return false; }
 
 //-- LEDs
 
-#define LED_RED                   IO_P27
+#define LED_RED                   IO_P22
 
-#ifdef TX_ELRS_EMAX_OLED_900_ESP32
+#ifdef TX_ELRS_DIY_900_ESP32
 
 #include <NeoPixelBus.h>
 bool ledRedState;
@@ -269,20 +269,20 @@ IRAM_ATTR void led_red_toggle(void) { gpio_toggle(LED_RED); }
 
 //-- Display I2C
 
-#define I2C_SDA_IO                IO_P22
-#define I2C_SCL_IO                IO_P21
+#define I2C_SDA_IO                IO_P14
+#define I2C_SCL_IO                IO_P4
 #define I2C_CLOCKSPEED            1000000L  // fix - rather too much, but helps with LQ, ESP32 max speed
 #define I2C_BUFFER_SIZE           1024
 
 
 //-- 5 Way Switch
 
-#define FIVEWAY_ADC_IO            IO_P33
-#define KEY_UP_THRESH             3230
-#define KEY_DOWN_THRESH           0
-#define KEY_LEFT_THRESH           1890
-#define KEY_RIGHT_THRESH          2623
-#define KEY_CENTER_THRESH         1205
+#define FIVEWAY_ADC_IO            IO_P39
+#define KEY_UP_THRESH             2839
+#define KEY_DOWN_THRESH           2191
+#define KEY_LEFT_THRESH           1616
+#define KEY_RIGHT_THRESH          3511
+#define KEY_CENTER_THRESH         0
 
 #if defined DEVICE_HAS_I2C_DISPLAY || defined DEVICE_HAS_I2C_DISPLAY_ROT180 || defined DEVICE_HAS_FIVEWAY
 
@@ -336,7 +336,7 @@ IRAM_ATTR void ser_or_com_set_to_com(void)
 
 //-- Cooling Fan
 
-#define FAN_IO                    IO_P32
+#define FAN_IO                    IO_P27
 
 void fan_init(void)
 {
@@ -356,8 +356,8 @@ IRAM_ATTR void fan_set_power(int8_t power_dbm)
 
 //-- ESP8285 Wifi Bridge
 
-#define ESP_RESET                 IO_P25 // backpack_en
-#define ESP_GPIO0                 IO_P15 // backpack_boot, seems to be inverted
+#define ESP_RESET                 IO_P19 // backpack_en
+#define ESP_GPIO0                 IO_P23 // backpack_boot, seems to be inverted
 //#define ESP_DTR                   IO_PC14 // DTR from USB-TTL adapter -> GPIO
 //#define ESP_RTS                   IO_PC3  // RTS from USB-TTL adapter -> RESET
 
@@ -382,54 +382,9 @@ IRAM_ATTR void esp_gpio0_low(void) { gpio_high(ESP_GPIO0); }
 
 #define POWER_GAIN_DBM            0 // 13 // gain of a PA stage if present
 #define POWER_SX1276_MAX_DBM      SX1276_OUTPUT_POWER_MAX // maximum allowed sx power
-//#define POWER_USE_DEFAULT_RFPOWER_CALC
+#define POWER_USE_DEFAULT_RFPOWER_CALC
 
-void sx1276_rfpower_calc(const int8_t power_dbm, uint8_t* sx_power, int8_t* actual_power_dbm, const uint8_t GAIN_DBM, const uint8_t SX1276_MAX_DBM)
-{
-    // jr bay: 
-    //   SX1276_MAX_POWER_15_DBM:   dac = 0,   sx_power = 15 => 30.5 dBm
-    //                              dac = 0,   sx_power = 0  => 27.4 dBm
-    //                              dac = 190, sx_power = 0  => -25 dBm !!!
-    //                              dac = 180, sx_power = 0  => 18.8 dBm
-    //                              dac = 150, sx_power = 0  => 24.7 dBm
-    //                              dac = 100, sx_power = 0  => 27.3 dBm
-    //   SX1276_MAX_POWER_10p8_DBM: dac = 0,   sx_power = 15 => 29.4 dBm
-    //                              dac = 0,   sx_power = 0  => 21.0 dBm
-    //                              dac = 180, sx_power = 0  => 10.7 dBm
-    //   SX1276_MAX_POWER_11p4_DBM  dac = 0,   sx_power = 0  => 27.3 dBm
-    //                              dac = 100, sx_power = 15 => 29.9 dBm
-    //                              dac = 0,   sx_power = 15 => 30.0 dBm
-    //                              dac = 180, sx_power = 0  => 10.1 dBm
-
-    uint8_t dac = 100;
-
-    if (power_dbm > 28) { // -> 30
-        dac = 0;
-        *sx_power = 15; // equals SX1276_OUTPUT_POWER_MAX
-        *actual_power_dbm = 30;
-    } else if (power_dbm > 25) { // -> 27
-        dac = 140;
-        *sx_power = 15;
-        *actual_power_dbm = 27;
-    } else if (power_dbm > 22) { // -> 24
-        dac = 150;
-        *sx_power = 6;
-        *actual_power_dbm = 24;
-    } else if (power_dbm > 18) { // -> 20
-        dac = 150;
-        *sx_power = 0;
-        *actual_power_dbm = 20;
-    } else {
-        dac = 180;
-        *sx_power = 0;
-        *actual_power_dbm = 10;
-    }
-
-    dacWrite(IO_P26, dac);
-    dacWrite(IO_P26, dac);
-}
-
-#define RFPOWER_DEFAULT           1 // index into rfpower_list array
+#define RFPOWER_DEFAULT           0 // index into rfpower_list array
 
 const rfpower_t rfpower_list[] = {
     { .dbm = POWER_MIN, .mW = INT8_MIN },

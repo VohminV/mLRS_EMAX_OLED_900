@@ -104,6 +104,9 @@
 #include "tx-hal-emax-oled-900-esp32.h"
 #endif
 
+#ifdef TX_ELRS_DIY_900_ESP32
+#include "tx-hal-diy-900.h"
+#endif
 
 // -- DIY
 
