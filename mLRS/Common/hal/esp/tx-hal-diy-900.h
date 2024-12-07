@@ -19,62 +19,59 @@
 */
 
 //-------------------------------------------------------
-// ESP32, ELRS EMAX OLED 900 TX
+// ESP32, ELRS RADIOMASTER BANDIT MICRO 900 TX
 //-------------------------------------------------------
 /*
-  {
-  "serial_rx": 21,
-  "serial_tx": 21, 
-  "radio_miso": 33, 
-  "radio_mosi": 32, 
-  "radio_sck": 25, 
-  "radio_dio0": 34, 
-  "radio_dio1": 35, 
-  "radio_nss": 2, 
-  "radio_rst": 13, 
-  "power_min": 3, 
-  "power_high": 6, 
-  "power_max": 6, 
-  "power_default": 3, 
-  "power_control": 0, 
-  "power_values": [0, 3, 5, 15], 
-  "joystick": 39, 
-  "joystick_values": [2839, 2191, 1616, 3511, 0, 4095], 
-  "led_rgb": 22, 
-  "led_rgb_isgrb": true, 
-  "misc_fan_en": 27, 
-  "screen_sck": 4, 
-  "screen_sda": 14, 
-  "screen_type": 1, 
-  "screen_reversed": 1, 
-  "use_backpack": true, 
-  "debug_backpack_baud": 460800, 
-  "debug_backpack_rx": 18, 
-  "debug_backpack_tx": 5, 
-  "backpack_boot": 23, 
-  "backpack_en": 19, 
-  "passthrough_baud": 230400
-  }
+  "serial_rx": 13,
+  "serial_tx": 13,
+  "radio_dio0": 22,
+  "radio_dio1": 21,
+  "radio_miso": 19,
+  "radio_mosi": 23,
+  "radio_nss": 4,
+  "radio_rst": 5,
+  "radio_sck": 18,
+  "radio_dcdc": true,       ???
+  "radio_rfo_hf": true,
+  "power_txen": 33,
+  "power_apc2": 26,
+  "power_min": 3,
+  "power_high": 6,
+  "power_max": 6,
+  "power_default": 3,
+  "power_control": 3,
+  "power_values": [168,148,128,90],
+  "power_values2": [2,6,9,12],
+  "use_backpack": true,
+  "debug_backpack_baud": 460800,
+  "debug_backpack_rx": 16,
+  "debug_backpack_tx": 17,
+  "backpack_boot": 32,
+  "backpack_en": 25,
+  "passthrough_baud": 230400,
+  "led_red": 15,
+  "led_red_invert": true,
+  "misc_fan_en": 2,
+  "screen_type": 1,
+  "screen_sck": 12,
+  "screen_sda": 14,
+  "screen_reversed": true,
+  "joystick": 39,
+  "joystick_values": [3227,0,1961,2668,1290,4095]
 */
 
 
-//#define DEVICE_HAS_JRPIN5
-//#define DEVICE_HAS_IN
+#define DEVICE_HAS_JRPIN5
+//#define DEVICE_HAS_IN_ON_JRPIN5_TX
+//#define DEVICE_HAS_IN //for some reason sbus inv blocks the 5 way button
+//#define DEVICE_HAS_IN_INVERTED
 #define DEVICE_HAS_SERIAL_OR_COM // board has UART which is shared between Serial or Com, selected by e.g. a switch
 //#define DEVICE_HAS_NO_SERIAL
 //#define DEVICE_HAS_NO_COM
 #define DEVICE_HAS_NO_DEBUG
 
-#ifdef TX_ELRS_DIY_900_ESP32
-#define DEVICE_HAS_SINGLE_LED_RGB
 #define DEVICE_HAS_I2C_DISPLAY_ROT180
-#else
-#define DEVICE_HAS_SINGLE_LED
-#define DEVICE_HAS_I2C_DISPLAY_ROT180
-#endif
-
 #define DEVICE_HAS_FAN_ONOFF // board has a Fan, which can be set on or off
-#define DEVICE_HAS_ESP_WIFI_BRIDGE_ON_SERIAL2 // board has an ESP8285 backpack with GPIO,RST, but no CONFIGURE for now
 
 
 //-- UARTS
@@ -85,31 +82,38 @@
 // UARTE = in port, SBus or whatever
 // UARTF = debug port
 
-#define UARTB_USE_SERIAL // serial
-#define UARTB_BAUD                TX_SERIAL_BAUDRATE
-//#define UARTB_USE_TX_IO           IO_P17
-//#define UARTB_USE_RX_IO           IO_P16
-#define UARTB_TXBUFSIZE           1024 // TX_SERIAL_TXBUFSIZE
-#define UARTB_RXBUFSIZE           TX_SERIAL_RXBUFSIZE
+#define UARTB_USE_SERIAL // CRSF Receiver
+#define UARTB_BAUD                416666
+#define UARTB_TXBUFSIZE           256 // For outbound CRSF frames
+#define UARTB_RXBUFSIZE           256 // For inbound CRSF frames
 
-#define UARTC_USE_SERIAL // com USB/CLI
+#define UARTC_USE_SERIAL // CLI/USB communication
 #define UARTC_BAUD                115200
-#define UARTC_TXBUFSIZE           0 // ?? // TX_COM_TXBUFSIZE
-#define UARTC_RXBUFSIZE           TX_COM_RXBUFSIZE
+#define UARTC_TXBUFSIZE           128 // Reduced buffer for lower baud rate
+#define UARTC_RXBUFSIZE           128
 
-#define UARTD_USE_SERIAL1 // serial2 BT/ESP
-#define UARTD_BAUD                115200
-#define UARTD_USE_TX_IO           IO_P17
-#define UARTD_USE_RX_IO           IO_P16
-#define UARTD_TXBUFSIZE           1024 // TX_SERIAL_TXBUFSIZE
-#define UARTD_RXBUFSIZE           TX_SERIAL_RXBUFSIZE
+/*
+#define UART_USE_SERIAL1 // External telemetry or similar
+#define UART_BAUD                 416666
+#define UARTE_USE_TX_IO           -1 // RX-only
+#define UARTE_USE_RX_IO           21
+#define UART_TXBUFSIZE            0  // No TX buffer needed
+#define UART_RXBUFSIZE            256
 
-#define UARTF_USE_SERIAL2 // debug is on JRPin5
-#define UARTF_BAUD                115200
+#define UARTE_USE_SERIAL1 // SBus or similar
+#define UARTE_BAUD                416666
+#define UARTE_USE_TX_IO           -1 // RX-only
+#define UARTE_USE_RX_IO           21
+#define UARTE_TXBUFSIZE           0
+#define UARTE_RXBUFSIZE           256
+
+#define UARTF_USE_SERIAL2 // Debug interface
+#define UARTF_BAUD                400000
 #define UARTF_USE_TX_IO           IO_P21
 #define UARTF_USE_RX_IO           -1
-#define UARTF_TXBUFSIZE           512 // ?? // 512
-
+#define UARTF_TXBUFSIZE           128 // Sufficient for debug logs
+#define UARTF_RXBUFSIZE           128
+*/
 
 //-- SX1: SX12xx & SPI
 
@@ -120,38 +124,37 @@
 #define SPI_FREQUENCY             10000000L
 #define SX_RESET                  IO_P13
 #define SX_DIO0                   IO_P34
-#define SX_DIO1                   IO_P35
+//#define SX_TX_EN                  IO_P33
+
+//#define SX_USE_RFO
 
 IRQHANDLER(void SX_DIO_EXTI_IRQHandler(void);)
 
 void sx_init_gpio(void)
 {
     gpio_init(SX_DIO0, IO_MODE_INPUT_ANALOG);
-    gpio_init(SX_DIO1, IO_MODE_INPUT_ANALOG);
-    //gpio_init(SX_RX_EN, IO_MODE_OUTPUT_PP_LOW);
+    //gpio_init(SX_TX_EN, IO_MODE_OUTPUT_PP_LOW);
     gpio_init(SX_RESET, IO_MODE_OUTPUT_PP_HIGH);
 }
 
 IRAM_ATTR void sx_amp_transmit(void)
 {
-    //gpio_low(SX_RX_EN);
+    //gpio_high(SX_TX_EN);
 }
 
 IRAM_ATTR void sx_amp_receive(void)
 {
-    //gpio_high(SX_RX_EN);
+   // gpio_low(SX_TX_EN);
 }
 
 void sx_dio_enable_exti_isr(void)
 {
     attachInterrupt(SX_DIO0, SX_DIO_EXTI_IRQHandler, RISING);
-    attachInterrupt(SX_DIO1, SX_DIO_EXTI_IRQHandler, RISING);
 }
 
 void sx_dio_init_exti_isroff(void)
 {
     detachInterrupt(SX_DIO0);
-    detachInterrupt(SX_DIO1);
 }
 
 void sx_dio_exti_isr_clearflag(void) {}
@@ -336,7 +339,7 @@ IRAM_ATTR void ser_or_com_set_to_com(void)
 
 //-- Cooling Fan
 
-#define FAN_IO                    IO_P27
+#define FAN_IO                    IO_P2
 
 void fan_init(void)
 {
@@ -384,7 +387,8 @@ IRAM_ATTR void esp_gpio0_low(void) { gpio_high(ESP_GPIO0); }
 #define POWER_SX1276_MAX_DBM      SX1276_OUTPUT_POWER_MAX // maximum allowed sx power
 #define POWER_USE_DEFAULT_RFPOWER_CALC
 
-#define RFPOWER_DEFAULT           0 // index into rfpower_list array
+
+#define RFPOWER_DEFAULT           1 // index into rfpower_list array
 
 const rfpower_t rfpower_list[] = {
     { .dbm = POWER_MIN, .mW = INT8_MIN },

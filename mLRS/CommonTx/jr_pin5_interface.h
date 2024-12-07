@@ -9,11 +9,12 @@
 #include <Arduino.h> 
 
 #define UART_UARTx UART_NUM_1
-#define UART_TX_PIN GPIO_NUM_17
-#define UART_RX_PIN GPIO_NUM_16
+#define UART_TX_PIN -1
+#define UART_RX_PIN GPIO_NUM_21
 
-#define TX_BUF_SIZE 1024
-#define RX_BUF_SIZE 1024
+
+#define TX_BUF_SIZE 256
+#define RX_BUF_SIZE 256
 
 static const char *TAG = "JRPIN5";
 
@@ -104,7 +105,7 @@ void tPin5BridgeBase::Init(void) {
     telemetry_start_next_tick = false;
 
     uart_config_t uart_config = {
-        .baud_rate = 9600,
+        .baud_rate = 416666,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
@@ -124,11 +125,14 @@ void tPin5BridgeBase::TelemetryStart(void) {
 
 void tPin5BridgeBase::pin5_tx_enable(bool enable_flag) {
     if (enable_flag) {
+        uart_enable_tx_intr(UART_UARTx, 1, 1);
         ESP_LOGI(TAG, "TX enabled.");
     } else {
-        ESP_LOGI(TAG, "RX enabled.");
+        uart_disable_tx_intr(UART_UARTx);
+        ESP_LOGI(TAG, "TX enabled.");
     }
 }
+
 
 void tPin5BridgeBase::uart_rx_callback(uint8_t c) {
     parse_nextchar(c);
@@ -146,8 +150,9 @@ void tPin5BridgeBase::uart_tc_callback(void) {
     state = STATE_IDLE;
 }
 
+
 void tPin5BridgeBase::CheckAndRescue(void) {
-    uint32_t tnow_ms = millis32();
+    uint32_t tnow_ms = esp_timer_get_time() / 1000;
     if (state < STATE_TRANSMITING) {
         nottransmiting_tlast_ms = tnow_ms;
     } else if (tnow_ms - nottransmiting_tlast_ms > 20) {
